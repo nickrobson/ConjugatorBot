@@ -39,7 +39,7 @@ public class SvExtractor implements Extractor {
                     Element ol = element.nextElementSibling();
                     if (ol.tagName().equals("ol")) {
                         for (Element li : ol.getElementsByTag("li")) {
-                            li.children().remove();
+                            li.getElementsByTag("dl").remove();
                             caption += "\n\n" + definition + ". ";
                             caption += li.text();
                             definition++;
