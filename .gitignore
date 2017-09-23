@@ -1,0 +1,6 @@
+*.xml
+*.class
+/.idea/
+*.iml
+/target/
+groups.json
