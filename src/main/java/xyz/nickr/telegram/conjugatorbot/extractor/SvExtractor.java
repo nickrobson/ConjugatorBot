@@ -50,7 +50,7 @@ public class SvExtractor implements Extractor {
                 if (element.tagName().equalsIgnoreCase("table")) {
                     result.img = toImage(element);
                 }
-                if (element.tagName().equalsIgnoreCase("h4") && element.text().equalsIgnoreCase("översättningar")) {
+                if (element.tagName().equalsIgnoreCase("h4") && element.child(0).text().equalsIgnoreCase("översättningar")) {
                     finished = true;
                 }
             }
