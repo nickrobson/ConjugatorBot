@@ -1,6 +1,5 @@
 package xyz.nickr.telegram.conjugatorbot.extractor;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
