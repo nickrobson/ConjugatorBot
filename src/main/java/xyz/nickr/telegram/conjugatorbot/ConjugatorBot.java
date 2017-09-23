@@ -79,14 +79,6 @@ public class ConjugatorBot implements Listener {
 
         bot.getEventsManager().register(new ConjugatorBot());
         bot.startUpdates(true);
-
-        try {
-            Thread.sleep(5 * 60 * 1000L);
-
-            try (FileWriter writer = new FileWriter("groups.json")) {
-                GSON.toJson(groupLanguageBindings, writer);
-            }
-        } catch (Exception ignored) {}
     }
 
     public void onCommandMessageReceived(CommandMessageReceivedEvent event) {
@@ -115,6 +107,9 @@ public class ConjugatorBot implements Listener {
         if (args.length == 0) {
             String oldLang = groupLanguageBindings.remove(event.getChat().getId());
             if (oldLang != null) {
+                try (FileWriter writer = new FileWriter("groups.json")) {
+                    GSON.toJson(groupLanguageBindings, writer);
+                } catch (IOException ignored) {}
                 reply(event, "Unbound from " + oldLang + "!", ParseMode.NONE);
             } else {
                 reply(event, "You need to specify a language to bind to: /bind (lang)", ParseMode.NONE);
@@ -124,6 +119,9 @@ public class ConjugatorBot implements Listener {
         args[0] = args[0].toLowerCase();
         if (extractors.containsKey(args[0])) {
             groupLanguageBindings.put(event.getChat().getId(), args[0]);
+            try (FileWriter writer = new FileWriter("groups.json")) {
+                GSON.toJson(groupLanguageBindings, writer);
+            } catch (IOException ignored) {}
             reply(event, "Language bound to: " + args[0], ParseMode.NONE);
         } else {
             reply(event, "That language isn't supported! Try one of: " + String.join(", ", extractors.keySet()), ParseMode.NONE);
