@@ -218,6 +218,7 @@ public class ConjugatorBot implements Listener {
                     } else {
                         resultList.add(InlineQueryResultArticle.builder()
                                 .id(Integer.toString(queryId.getAndIncrement(), 36))
+                                .title(result.caption)
                                 .description(result.caption)
                                 .inputMessageContent(InputTextMessageContent.builder()
                                         .messageText(result.caption)
@@ -230,6 +231,7 @@ public class ConjugatorBot implements Listener {
             } else {
                 resultList.add(InlineQueryResultArticle.builder()
                         .id(Integer.toString(queryId.getAndIncrement(), 36))
+                        .title("No results found!")
                         .description("No results found!")
                         .inputMessageContent(InputTextMessageContent.builder()
                                 .messageText("No results found!")
