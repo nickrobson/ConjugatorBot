@@ -21,43 +21,46 @@ public class SvExtractor implements Extractor {
 
         Elements elements = this.loadWikipediaPage(String.format(URL_FORMAT, search[0]), "Svenska");
         List<ExtractResult> resultList = new ArrayList<>();
-        BufferedImage img = null;
+        ExtractResult result = new ExtractResult();
+
         String caption = null;
         int definition = 1;
         for (Element element : elements) {
-            if ("h3".equals(element.tagName())) {
-                if (img != null) {
-                    resultList.add(new ExtractResult(img, caption));
-                    img = null;
-                    definition = 1;
-                }
-                String type = element.getElementsByClass("mw-headline").first().text();
-                if (searchType == null || searchType.equalsIgnoreCase(type)) {
-                    caption = type;
-                } else {
+            boolean finished = false;
+            if (element.tagName().equals("h3")) {
+                caption = element.getElementsByClass("mw-headline").first().text();
+                if (searchType != null && !searchType.equalsIgnoreCase(caption))
                     caption = null;
+                continue;
+            }
+
+            if (caption != null) {
+                if (element.tagName().equalsIgnoreCase("p") && element.child(0).text().equalsIgnoreCase(search[0])) {
+                    Element ol = element.nextElementSibling();
+                    if (ol.tagName().equals("ol")) {
+                        for (Element li : ol.getElementsByTag("li")) {
+                            caption += "\n\n" + definition + ". ";
+                            caption += li.text();
+                            definition++;
+                        }
+                    }
+                    result.caption = caption;
+                }
+                if (element.tagName().equalsIgnoreCase("table")) {
+                    result.img = toImage(element);
+                }
+                if (element.tagName().equalsIgnoreCase("h4") && element.text().equalsIgnoreCase("översättningar")) {
+                    finished = true;
                 }
             }
-            if (caption != null) {
-                if ("ol".equals(element.tagName())) {
-                    for (Element li : element.children()) {
-                        Element firstChild = li.child(0);
-                        if ("i".equals(firstChild.tagName()) && "böjningsform av".equals(firstChild.text())) {
-                            return extract(li.child(1).attr("href").substring(6));
-                        }
-                        li.getElementsByTag("dl").remove();
-                        caption += "\n\n" + definition + ". ";
-                        caption += li.text();
-                        definition++;
-                    }
-                }
-                if ("table".equals(element.tagName())) {
-                    img = toImage(element);
-                }
+
+            if (finished || (result.img != null && result.caption != null)) {
+                resultList.add(result);
+                result = new ExtractResult();
+                caption = null;
+                definition = 1;
             }
         }
-        if (img != null)
-            resultList.add(new ExtractResult(img, caption));
         return resultList.toArray(new ExtractResult[0]);
     }
 
