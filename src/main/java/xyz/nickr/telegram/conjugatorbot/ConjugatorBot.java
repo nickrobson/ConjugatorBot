@@ -14,6 +14,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import javax.imageio.ImageIO;
@@ -183,36 +188,46 @@ public class ConjugatorBot implements Listener {
 
     @Override
     public void onInlineQueryReceived(InlineQueryReceivedEvent event) {
-        List<InlineQueryResult> resultList = new ArrayList<>();
+        List<InlineQueryResult> resultList = new CopyOnWriteArrayList<>();
         try {
             String[] args = event.getQuery().getQuery().split(" ");
             Extractor.ExtractResult[] results = lookup(String.valueOf(event.getQuery().getSender().getId()), args);
-            for (Extractor.ExtractResult result : results) {
-                if (result.img != null) {
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    ImageIO.write(result.img, "png", baos);
-                    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-                    URL url = Imgur.uploadSingle(IMGUR_TOKEN, "image.png", bais);
-                    resultList.add(InlineQueryResultPhoto.builder()
-                            .id(Integer.toString(queryId.getAndIncrement(), 36))
-                            .thumbUrl(url)
-                            .photoUrl(url)
-                            .photoWidth(result.img.getWidth())
-                            .photoHeight(result.img.getHeight())
-                            .caption(result.caption)
-                            .description(result.caption)
-                            .build());
-                } else {
-                    resultList.add(InlineQueryResultArticle.builder()
-                            .id(Integer.toString(queryId.getAndIncrement(), 36))
-                            .description(result.caption)
-                            .inputMessageContent(InputTextMessageContent.builder()
-                                    .messageText(result.caption)
-                                    .build())
-                            .build());
+            if (results.length > 0) {
+                ExecutorService executor = Executors.newFixedThreadPool(results.length);
+                for (Extractor.ExtractResult result : results) {
+                    if (result.img != null) {
+                        executor.submit(() -> {
+                            try {
+                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                ImageIO.write(result.img, "png", baos);
+                                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                                URL url = Imgur.uploadSingle(IMGUR_TOKEN, "image.png", bais);
+                                resultList.add(InlineQueryResultPhoto.builder()
+                                        .id(Integer.toString(queryId.getAndIncrement(), 36))
+                                        .thumbUrl(url)
+                                        .photoUrl(url)
+                                        .photoWidth(result.img.getWidth())
+                                        .photoHeight(result.img.getHeight())
+                                        .caption(result.caption)
+                                        .description(result.caption)
+                                        .build());
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        });
+                    } else {
+                        resultList.add(InlineQueryResultArticle.builder()
+                                .id(Integer.toString(queryId.getAndIncrement(), 36))
+                                .description(result.caption)
+                                .inputMessageContent(InputTextMessageContent.builder()
+                                        .messageText(result.caption)
+                                        .build())
+                                .build());
+                    }
                 }
-            }
-            if (results.length == 0) {
+                executor.shutdown();
+                executor.awaitTermination(10, TimeUnit.SECONDS);
+            } else {
                 resultList.add(InlineQueryResultArticle.builder()
                         .id(Integer.toString(queryId.getAndIncrement(), 36))
                         .description("No results found!")
