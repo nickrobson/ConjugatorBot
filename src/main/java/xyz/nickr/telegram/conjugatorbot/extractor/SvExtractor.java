@@ -1,9 +1,11 @@
 package xyz.nickr.telegram.conjugatorbot.extractor;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -22,24 +24,34 @@ public class SvExtractor implements Extractor {
 
         Elements elements = this.loadWikipediaPage(String.format(URL_FORMAT, search[0]), "Svenska");
         List<ExtractResult> resultList = new ArrayList<>();
-        ExtractResult result = new ExtractResult();
 
-        String caption = null;
+        String type = null;
         int definition = 1;
+        LinkedList<String> captions = new LinkedList<>();
+        LinkedList<BufferedImage> tables = new LinkedList<>();
         for (Element element : elements) {
             boolean finished = false;
             if (element.tagName().equals("h3")) {
-                result = new ExtractResult();
                 definition = 1;
-                caption = element.getElementsByClass("mw-headline").first().text();
-                if (searchType != null && !searchType.equalsIgnoreCase(caption))
-                    caption = null;
+                type = element.getElementsByClass("mw-headline").first().text();
+                if (searchType != null && !searchType.equalsIgnoreCase(type))
+                    type = null;
+                captions.clear();
+                tables.clear();
                 continue;
             }
 
-            if (caption != null) {
+            if (type != null) {
                 if (element.tagName().equalsIgnoreCase("p") && element.child(0).text().equalsIgnoreCase(search[0])) {
+                    String caption = type + " (" + element.text() + ")";
+                    String oldCaption = caption;
                     Element ol = element.nextElementSibling();
+                    if (ol.tagName().equals("ul")) {
+                        for (Element li : ol.getElementsByTag("li")) {
+                            caption += "\n" + li.text();
+                        }
+                        ol = ol.nextElementSibling();
+                    }
                     if (ol.tagName().equals("ol")) {
                         for (Element li : ol.getElementsByTag("li")) {
                             if (li.child(0).tagName().equals("i") && li.child(0).text().equals("böjningsform av")) {
@@ -54,20 +66,27 @@ public class SvExtractor implements Extractor {
                             }
                         }
                     }
-                    result.caption = caption;
+                    if (!oldCaption.equals(caption))
+                        captions.add(caption);
                 }
                 if (element.tagName().equalsIgnoreCase("table")) {
-                    result.img = toImage(element);
+                    tables.add(toImage(element));
                 }
-                if (element.tagName().equalsIgnoreCase("h4") && element.child(0).text().equalsIgnoreCase("översättningar")) {
+                if (element.tagName().equalsIgnoreCase("h4") && element.text().equalsIgnoreCase("oversættelser")) {
                     finished = true;
+                    if (tables.size() < captions.size()) {
+                        tables.add(null);
+                    } else if (tables.size() > captions.size()) {
+                        captions.add(null);
+                    }
                 }
             }
 
-            if (finished || (result.img != null && result.caption != null)) {
+            while (finished || (!captions.isEmpty() && !tables.isEmpty())) {
+                ExtractResult result = new ExtractResult();
+                result.caption = captions.pollFirst();
+                result.img = tables.pollFirst();
                 resultList.add(result);
-                result = new ExtractResult();
-                caption = null;
                 definition = 1;
             }
         }
