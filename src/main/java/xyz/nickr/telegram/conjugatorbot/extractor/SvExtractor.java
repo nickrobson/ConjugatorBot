@@ -1,6 +1,7 @@
 package xyz.nickr.telegram.conjugatorbot.extractor;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +43,9 @@ public class SvExtractor implements Extractor {
                     if (ol.tagName().equals("ol")) {
                         for (Element li : ol.getElementsByTag("li")) {
                             if (li.child(0).tagName().equals("i") && li.child(0).text().equals("böjningsform av")) {
-                                resultList.addAll(Arrays.asList(extract(li.child(1).attr("href").substring(6))));
+                                String href = li.child(1).attr("href").substring(6);
+                                href = URLDecoder.decode(href, "UTF-8");
+                                resultList.addAll(Arrays.asList(extract(href)));
                             } else {
                                 li.getElementsByTag("dl").remove();
                                 caption += "\n\n" + definition + ". ";
