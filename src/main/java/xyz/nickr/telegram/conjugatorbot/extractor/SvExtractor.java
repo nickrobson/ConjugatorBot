@@ -22,7 +22,8 @@ public class SvExtractor implements Extractor {
         String[] search = searchTerm.split("#");
         String searchType = search.length > 1 ? search[1] : null;
 
-        Elements elements = this.loadWikipediaPage(String.format(URL_FORMAT, search[0]), "Svenska");
+        String wikiUrl = String.format(URL_FORMAT, search[0]);
+        Elements elements = this.loadWikipediaPage(wikiUrl, "Svenska");
         List<ExtractResult> resultList = new ArrayList<>();
 
         String type = null;
@@ -66,8 +67,13 @@ public class SvExtractor implements Extractor {
                             }
                         }
                     }
-                    if (!oldCaption.equals(caption))
+                    if (!oldCaption.equals(caption)) {
+                        String url = "\n" + wikiUrl;
+                        if (caption.length() + url.length() > 200) {
+                            caption = caption.substring(0, 199 - url.length()) + "…" + url;
+                        }
                         captions.add(caption);
+                    }
                 }
                 if (element.tagName().equalsIgnoreCase("table")) {
                     tables.add(toImage(element));
