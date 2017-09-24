@@ -28,6 +28,8 @@ public class SvExtractor implements Extractor {
         for (Element element : elements) {
             boolean finished = false;
             if (element.tagName().equals("h3")) {
+                result = new ExtractResult();
+                definition = 1;
                 caption = element.getElementsByClass("mw-headline").first().text();
                 if (searchType != null && !searchType.equalsIgnoreCase(caption))
                     caption = null;
