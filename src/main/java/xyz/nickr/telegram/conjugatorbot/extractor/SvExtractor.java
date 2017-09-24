@@ -2,6 +2,7 @@ package xyz.nickr.telegram.conjugatorbot.extractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -39,12 +40,13 @@ public class SvExtractor implements Extractor {
                     if (ol.tagName().equals("ol")) {
                         for (Element li : ol.getElementsByTag("li")) {
                             if (li.child(0).tagName().equals("i") && li.child(0).text().equals("böjningsform av")) {
-                                return extract(li.child(1).attr("href").substring(6));
+                                resultList.addAll(Arrays.asList(extract(li.child(1).attr("href").substring(6))));
+                            } else {
+                                li.getElementsByTag("dl").remove();
+                                caption += "\n\n" + definition + ". ";
+                                caption += li.text();
+                                definition++;
                             }
-                            li.getElementsByTag("dl").remove();
-                            caption += "\n\n" + definition + ". ";
-                            caption += li.text();
-                            definition++;
                         }
                     }
                     result.caption = caption;
