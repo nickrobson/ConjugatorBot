@@ -31,18 +31,15 @@ public class SvExtractor implements Extractor {
         LinkedList<String> captions = new LinkedList<>();
         LinkedList<BufferedImage> tables = new LinkedList<>();
         for (Element element : elements) {
-            boolean finished = false;
             if (element.tagName().equals("h3")) {
                 definition = 1;
                 type = element.getElementsByClass("mw-headline").first().text();
                 if (searchType != null && !searchType.equalsIgnoreCase(type))
                     type = null;
-                captions.clear();
-                tables.clear();
-                continue;
-            }
-
-            if (type != null) {
+                else
+                    while (captions.size() != tables.size())
+                        (captions.size() < tables.size() ? captions : tables).add(null);
+            } else if (type != null) {
                 if (element.tagName().equalsIgnoreCase("p") && element.child(0).text().equalsIgnoreCase(search[0])) {
                     String caption = type + " (" + element.text() + ")";
                     String oldCaption = caption;
@@ -79,7 +76,6 @@ public class SvExtractor implements Extractor {
                     tables.add(toImage(element));
                 }
                 if (element.tagName().equalsIgnoreCase("h4") && element.text().equalsIgnoreCase("oversættelser")) {
-                    finished = true;
                     if (tables.size() < captions.size()) {
                         tables.add(null);
                     } else if (tables.size() > captions.size()) {
@@ -88,7 +84,7 @@ public class SvExtractor implements Extractor {
                 }
             }
 
-            while (finished || (!captions.isEmpty() && !tables.isEmpty())) {
+            while (!captions.isEmpty() && !tables.isEmpty()) {
                 ExtractResult result = new ExtractResult();
                 result.caption = captions.pollFirst();
                 result.img = tables.pollFirst();
