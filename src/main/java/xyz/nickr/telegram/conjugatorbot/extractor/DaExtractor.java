@@ -31,7 +31,6 @@ public class DaExtractor implements Extractor {
         LinkedList<String> captions = new LinkedList<>();
         LinkedList<BufferedImage> tables = new LinkedList<>();
         for (Element element : elements) {
-            boolean finished = false;
             if (element.tagName().equals("h3")) {
                 definition = 1;
                 type = element.getElementsByClass("mw-headline").first().text();
@@ -74,7 +73,6 @@ public class DaExtractor implements Extractor {
                     }
                 }
                 if (element.tagName().equalsIgnoreCase("h4") && element.text().equalsIgnoreCase("oversættelser")) {
-                    finished = true;
                     if (tables.size() < captions.size()) {
                         tables.add(null);
                     } else if (tables.size() > captions.size()) {
@@ -83,7 +81,7 @@ public class DaExtractor implements Extractor {
                 }
             }
 
-            while (finished || (!captions.isEmpty() && !tables.isEmpty())) {
+            while (!captions.isEmpty() && !tables.isEmpty()) {
                 ExtractResult result = new ExtractResult();
                 result.caption = captions.pollFirst();
                 result.img = tables.pollFirst();

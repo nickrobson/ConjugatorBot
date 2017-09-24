@@ -251,7 +251,7 @@ public class ConjugatorBot implements Listener {
         event.getQuery().answer(bot, InlineQueryResponse.builder()
                 .results(resultList)
                 .isPersonal(false)
-                .cacheTime(0)
+                .cacheTime(60 * 60 * 2)
                 .build()
         );
     }
