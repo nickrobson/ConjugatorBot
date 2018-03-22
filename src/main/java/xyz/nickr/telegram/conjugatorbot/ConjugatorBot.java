@@ -230,6 +230,7 @@ public class ConjugatorBot {
                     .build());
         }
         bot.perform(AnswerInlineQuery.builder()
+                .queryId(event.getQuery().getId())
                 .addAllResults(resultList)
                 .isPersonal(false)
                 .cacheTime(60 * 60 * 2)

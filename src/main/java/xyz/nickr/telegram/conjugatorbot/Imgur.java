@@ -4,10 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Base64;
+import okhttp3.FormBody;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -23,17 +23,15 @@ public class Imgur {
         Request request = new Request.Builder()
                 .url("https://api.imgur.com/3/image")
                 .header("Authorization", "Client-ID " + clientId)
-                .method("POST", new MultipartBody.Builder()
-                        .addFormDataPart("image", base64)
-                        .addFormDataPart("title", title)
-                        .addFormDataPart("type", "base64")
+                .post(new FormBody.Builder()
+                        .add("image", base64)
+                        .add("title", title)
+                        .add("type", "base64")
                         .build())
                 .build();
         JsonObject obj;
         try (Response response = HTTP.newCall(request).execute()) {
-            try (InputStreamReader isr = new InputStreamReader(response.body().byteStream())) {
-                obj = GSON.fromJson(isr, JsonObject.class);
-            }
+            obj = GSON.fromJson(response.body().string(), JsonObject.class);
         }
         return obj;
     }
