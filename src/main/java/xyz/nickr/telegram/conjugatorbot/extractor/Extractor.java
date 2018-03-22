@@ -1,6 +1,7 @@
 package xyz.nickr.telegram.conjugatorbot.extractor;
 
 import gui.ava.html.image.generator.HtmlImageGenerator;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -34,6 +35,7 @@ public interface Extractor {
 
     default BufferedImage toImage(Element table) {
         HtmlImageGenerator generator = new HtmlImageGenerator();
+        generator.setSize(new Dimension(1024, 1024));
         generator.loadHtml(table.toString());
         return generator.getBufferedImage();
     }

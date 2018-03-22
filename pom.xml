@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>xyz.nickr.telegram</groupId>
-    <artifactId>wikibot</artifactId>
+    <artifactId>conjugatorbot</artifactId>
     <version>0.0.1</version>
 
     <dependencies>
         <dependency>
             <groupId>pro.zackpollard.telegrambot.api</groupId>
-            <artifactId>jtelegram-botapi</artifactId>
+            <artifactId>jtelegram-botapi-core</artifactId>
             <version>1.6.5</version>
         </dependency>
         <dependency>

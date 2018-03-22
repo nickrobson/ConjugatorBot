@@ -2,9 +2,7 @@ package xyz.nickr.telegram.conjugatorbot.extractor;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.jsoup.nodes.Element;
