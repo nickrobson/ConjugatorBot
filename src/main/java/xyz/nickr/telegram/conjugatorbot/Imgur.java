@@ -1,40 +1,46 @@
 package xyz.nickr.telegram.conjugatorbot;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.InputStreamBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class Imgur {
 
-    private static final CloseableHttpClient HTTP = HttpClients.createDefault();
+    private static final OkHttpClient HTTP = new OkHttpClient();
     private static final Gson GSON = new GsonBuilder().setLenient().create();
 
     public static JsonObject upload(String clientId, String title, InputStream is) throws IOException {
-        HttpPost post = new HttpPost("https://api.imgur.com/3/image");
-        post.setHeader("Authorization", "Client-ID " + clientId);
-        HttpEntity entity = MultipartEntityBuilder.create().addPart("title", new StringBody(title, ContentType.TEXT_PLAIN)).addPart("image", new InputStreamBody(is, title)).build();
-        post.setEntity(entity);
-        CloseableHttpResponse res = HTTP.execute(post);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int i;
+        byte[] buf = new byte[2048];
+        while ((i = is.read(buf)) > 0) {
+            baos.write(buf, 0, i);
+        }
+        Request request = new Request.Builder()
+                .url("https://api.imgur.com/3/image")
+                .header("Authorization", "Client-ID " + clientId)
+                .method("POST", new MultipartBody.Builder()
+                        .addFormDataPart("title", null, RequestBody.create(MediaType.parse("text/plain"), title))
+                        .addFormDataPart("image", title, RequestBody.create(MediaType.parse("application/octet-stream"), baos.toByteArray()))
+                        .build())
+                .build();
         JsonObject obj;
-        try (InputStreamReader isr = new InputStreamReader(res.getEntity().getContent())) {
-            obj = GSON.fromJson(isr, JsonObject.class);
-            res.close();
+        try (Response response = HTTP.newCall(request).execute()) {
+            try (Reader isr = response.body().charStream()) {
+                obj = GSON.fromJson(isr, JsonObject.class);
+            }
         }
         return obj;
     }

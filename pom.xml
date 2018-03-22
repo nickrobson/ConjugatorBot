@@ -10,9 +10,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>pro.zackpollard.telegrambot.api</groupId>
-            <artifactId>jtelegram-botapi-core</artifactId>
-            <version>1.6.5</version>
+            <groupId>com.jtelegram</groupId>
+            <artifactId>jtelegrambotapi-core</artifactId>
+            <version>3.6.1</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
