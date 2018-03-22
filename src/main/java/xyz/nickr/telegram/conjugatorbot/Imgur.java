@@ -3,9 +3,7 @@ package xyz.nickr.telegram.conjugatorbot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,19 +19,13 @@ public class Imgur {
     private static final OkHttpClient HTTP = new OkHttpClient();
     private static final Gson GSON = new GsonBuilder().setLenient().create();
 
-    public static JsonObject upload(String clientId, String title, InputStream is) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        int i;
-        byte[] buf = new byte[2048];
-        while ((i = is.read(buf)) > 0) {
-            baos.write(buf, 0, i);
-        }
+    public static JsonObject upload(String clientId, String title, byte[] bytes) throws IOException {
         Request request = new Request.Builder()
                 .url("https://api.imgur.com/3/image")
                 .header("Authorization", "Client-ID " + clientId)
                 .method("POST", new MultipartBody.Builder()
                         .addFormDataPart("title", null, RequestBody.create(MediaType.parse("text/plain"), title))
-                        .addFormDataPart("image", title, RequestBody.create(MediaType.parse("application/octet-stream"), baos.toByteArray()))
+                        .addFormDataPart("image", title, RequestBody.create(MediaType.parse("application/octet-stream"), bytes))
                         .build())
                 .build();
         JsonObject obj;
@@ -45,8 +37,8 @@ public class Imgur {
         return obj;
     }
 
-    public static URL uploadSingle(String clientId, String title, InputStream is) throws IOException {
-        JsonObject obj = upload(clientId, title, is);
+    public static URL uploadSingle(String clientId, String title, byte[] bytes) throws IOException {
+        JsonObject obj = upload(clientId, title, bytes);
         try {
             return obj != null && obj.get("success").getAsBoolean() ? new URL(obj.getAsJsonObject("data").get("link").getAsString()) : null;
         } catch (MalformedURLException e) {

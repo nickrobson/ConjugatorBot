@@ -181,8 +181,7 @@ public class ConjugatorBot {
                             try {
                                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                                 ImageIO.write(result.img, "png", baos);
-                                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-                                URL url = Imgur.uploadSingle(IMGUR_TOKEN, "image.png", bais);
+                                URL url = Imgur.uploadSingle(IMGUR_TOKEN, "image.png", baos.toByteArray());
                                 String urlString = url != null ? url.toExternalForm() : null;
                                 resultList.add(InlineResultPhoto.builder()
                                         .id(Integer.toString(queryId.getAndIncrement(), 36))
