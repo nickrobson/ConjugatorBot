@@ -23,7 +23,6 @@ import com.jtelegram.api.requests.message.send.SendPhoto;
 import com.jtelegram.api.requests.message.send.SendText;
 import com.jtelegram.api.update.PollingUpdateProvider;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -82,8 +81,6 @@ public class ConjugatorBot {
                     )
             );
 
-            System.out.println("Logged in as " + bot.getBotInfo().getUsername());
-
             try (FileReader reader = new FileReader("groups.json")) {
                 JsonObject json = GSON.fromJson(reader, JsonObject.class);
                 json.entrySet().forEach(e -> groupLanguageBindings.put(e.getKey(), e.getValue().getAsString()));
@@ -94,6 +91,7 @@ public class ConjugatorBot {
             }
 
             bot.getEventRegistry().registerEvent(InlineQueryEvent.class, ConjugatorBot::onInlineQueryReceived);
+            System.out.println("Logged in as " + bot.getBotInfo().getUsername());
         });
 
     }
@@ -235,6 +233,7 @@ public class ConjugatorBot {
                 .addAllResults(resultList)
                 .isPersonal(false)
                 .cacheTime(60 * 60 * 2)
+                .errorHandler(Exception::printStackTrace)
                 .build());
         return true;
     }
